@@ -4,10 +4,12 @@ import gradio as gr
 import torch
 from PIL import Image
 
+base_model_id= 'stabilityai/stable-diffusion-2-1-base'
 model_id = 'aipicasso/cool-japan-diffusion-2-1-0'
 prefix = ''
      
 scheduler = DPMSolverMultistepScheduler.from_pretrained(model_id, subfolder="scheduler")
+feature_extractor= CLIPFeatureExtractor.from_pretrained(base_model_id, subfolder="feature_extractor")
 
 pipe = StableDiffusionPipeline.from_pretrained(
   model_id,
@@ -17,7 +19,11 @@ pipe = StableDiffusionPipeline.from_pretrained(
 pipe_i2i = StableDiffusionImg2ImgPipeline.from_pretrained(
   model_id,
   torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-  scheduler=scheduler)
+  scheduler=scheduler,
+  requires_safety_checker=False,
+  safety_checker=None,
+  feature_extractor=feature_extractor
+)
 
 if torch.cuda.is_available():
   pipe = pipe.to("cuda")
@@ -77,7 +83,7 @@ with gr.Blocks(css=css) as demo:
         f"""
             <div class="main-div">
               <div>
-                <h1>Cool Japan Diffusion 2 1 0</h1>
+                <h1>Cool Japan Diffusion 2.1.0</h1>
               </div>
               <p>
                Demo for <a href="https://huggingface.co/aipicasso/cool-japan-diffusion-2-1-0">Cool Japan Diffusion 2 1 0</a> Stable Diffusion model.<br>
