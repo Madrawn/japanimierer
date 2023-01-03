@@ -70,8 +70,8 @@ def img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height
         num_inference_steps = int(steps),
         strength = strength,
         guidance_scale = guidance,
-        width = width,
-        height = height,
+        #width = width,
+        #height = height,
         generator = generator)
         
     return result.images[0]
