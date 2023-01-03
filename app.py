@@ -89,6 +89,12 @@ with gr.Blocks(css=css) as demo:
                Demo for <a href="https://huggingface.co/aipicasso/cool-japan-diffusion-2-1-0">Cool Japan Diffusion 2 1 0</a> Stable Diffusion model.<br>
                {"Add the following tokens to your prompts for the model to work properly: <b>prefix</b>" if prefix else ""}
               </p>
+              <p>
+              sample prompt: anime, ilya kuvshinov , (evangelion), a portrait of a girl with blue short hair and red eyes, ayanami rei, full color illustration, official art, 4k, detailed
+              </p>
+              <p>
+              sample negative prompt: low quality, bad face, ((((bad anatomy)))), ((bad hand)), lowres, jpeg artifacts, 2d, 3d, cg, text
+              </p>
               Running on {"<b>GPU 🔥</b>" if torch.cuda.is_available() else f"<b>CPU 🥶</b>. For faster inference it is recommended to <b>upgrade to GPU in <a href='https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0/settings'>Settings</a></b>"} after duplicating the space<br><br>
               <a style="display:inline-block" href="https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>
             </div>
