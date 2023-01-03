@@ -13,12 +13,12 @@ feature_extractor = CLIPFeatureExtractor.from_pretrained(model_id)
 
 pipe = StableDiffusionPipeline.from_pretrained(
   model_id,
-  torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+  torch_dtype=torch.float32,
   scheduler=scheduler)
 
 pipe_i2i = StableDiffusionImg2ImgPipeline.from_pretrained(
   model_id,
-  torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+  torch_dtype=torch.float32,
   scheduler=scheduler,
   requires_safety_checker=False,
   safety_checker=None,
