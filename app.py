@@ -39,10 +39,10 @@ def inference(prompt, guidance, steps, width=512, height=512, seed=0, img=None, 
   prompt = f"{prefix} {prompt}" if auto_prefix else prompt
 
   try:
-    if img is not None:
-      return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator), None
-    else:
-      return txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator), None
+    #if img is not None:
+    #  return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator), None
+    #else:
+    return txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator), None
   except Exception as e:
     return None, error_str(e)
 
