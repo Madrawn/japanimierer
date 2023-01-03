@@ -1,6 +1,6 @@
 ---
 title: Cool Japan Diffusion 2 1 0
-emoji: 🌍
+emoji: 🇯🇵
 colorFrom: pink
 colorTo: purple
 sdk: gradio
