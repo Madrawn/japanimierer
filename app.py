@@ -9,7 +9,7 @@ model_id = 'aipicasso/cool-japan-diffusion-2-1-0'
 prefix = ''
      
 scheduler = DPMSolverMultistepScheduler.from_pretrained(model_id, subfolder="scheduler")
-feature_extractor = CLIPFeatureExtractor.from_pretrained(model_id, subfolder="feature_extractor")
+feature_extractor = CLIPFeatureExtractor.from_pretrained(model_id)
 
 pipe = StableDiffusionPipeline.from_pretrained(
   model_id,
