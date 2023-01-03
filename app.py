@@ -9,7 +9,6 @@ model_id = 'aipicasso/cool-japan-diffusion-2-1-0'
 prefix = ''
      
 scheduler = DPMSolverMultistepScheduler.from_pretrained(model_id, subfolder="scheduler")
-feature_extractor= CLIPFeatureExtractor.from_pretrained(model_id, subfolder="feature_extractor")
 
 pipe = StableDiffusionPipeline.from_pretrained(
   model_id,
@@ -21,8 +20,7 @@ pipe_i2i = StableDiffusionImg2ImgPipeline.from_pretrained(
   torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
   scheduler=scheduler,
   requires_safety_checker=False,
-  safety_checker=None,
-  feature_extractor=feature_extractor
+  safety_checker=None
 )
 
 if torch.cuda.is_available():
