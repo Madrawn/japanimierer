@@ -95,6 +95,9 @@ with gr.Blocks(css=css) as demo:
               <p>
               sample negative prompt: low quality, bad face, ((((bad anatomy)))), ((bad hand)), lowres, jpeg artifacts, 2d, 3d, cg, text
               </p>
+              <p>
+              Japanese manual is <a href="https://alfredplpl.hatenablog.com/entry/2022/12/30/102636">here</a>.
+              </p>
               Running on {"<b>GPU 🔥</b>" if torch.cuda.is_available() else f"<b>CPU 🥶</b>. For faster inference it is recommended to <b>upgrade to GPU in <a href='https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0/settings'>Settings</a></b>"} after duplicating the space<br><br>
               <a style="display:inline-block" href="https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>
             </div>
