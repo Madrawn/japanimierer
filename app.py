@@ -1,5 +1,5 @@
 # Thank AK. https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0/blob/main/app.py
-from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, DPMSolverMultistepScheduler
+from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, EulerAncestralDiscreteScheduler
 from transformers import CLIPFeatureExtractor
 import gradio as gr
 import torch
@@ -8,7 +8,7 @@ from PIL import Image
 model_id = 'aipicasso/cool-japan-diffusion-2-1-0'
 prefix = ''
      
-scheduler = DPMSolverMultistepScheduler.from_pretrained(model_id, subfolder="scheduler")
+scheduler = EulerAncestralDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
 feature_extractor = CLIPFeatureExtractor.from_pretrained(model_id)
 
 pipe = StableDiffusionPipeline.from_pretrained(
@@ -122,7 +122,7 @@ with gr.Blocks(css=css) as demo:
 
               with gr.Row():
                 guidance = gr.Slider(label="Guidance scale", value=7.5, maximum=15)
-                steps = gr.Slider(label="Steps", value=25, minimum=2, maximum=75, step=1)
+                steps = gr.Slider(label="Steps", value=20, minimum=2, maximum=75, step=1)
 
               with gr.Row():
                 width = gr.Slider(label="Width", value=512, minimum=64, maximum=1024, step=8)
