@@ -56,7 +56,7 @@ def auto_prompt_correction(prompt_ui,neg_prompt_ui):
         prompt="anime, a portrait of a girl, 4k, detailed"
         neg_prompt=" (((deformed))), blurry, ((((bad anatomy)))), bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra_limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
-    human_words=["girl","woman","boy","man","guy"]
+    human_words=["girl","maid","female","woman","boy","male","man","guy"]
     for word in human_words:
         if( (prompt==f"a {word}" or prompt==word) and neg_prompt==""):
             prompt=f"anime, a portrait of a {word}, 4k, detailed"
@@ -68,7 +68,7 @@ def auto_prompt_correction(prompt_ui,neg_prompt_ui):
             prompt=f"anime, a {word}, 4k, detailed"
             neg_prompt=" (((deformed))), blurry, ((((bad anatomy)))), bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra_limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
-    background_words=["mount fuji","mt. fuji","buildidng", "tokyo"]
+    background_words=["mount fuji","mt. fuji","building", "buildings", "tokyo"]
     for word in background_words:
         if( (prompt==f"a {word}" or prompt==word) and neg_prompt==""):
             prompt=f"anime, shinkai makoto, {word}, 4k, 8k, highly detailed"
