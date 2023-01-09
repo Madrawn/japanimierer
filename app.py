@@ -46,8 +46,39 @@ def inference(prompt, guidance, steps, width=512, height=512, seed=0, img=None, 
   except Exception as e:
     return None, error_str(e)
 
-def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator):
+def auto_prompt_correction(prompt_ui,neg_prompt_ui):
+    # auto prompt correction
+    prompt=str(prompt_ui)
+    neg_prompt=str(neg_prompt_ui)
+    prompt=prompt.lower()
+    neg_prompt=neg_prompt.lower()
+    if(prompt=="" and neg_prompt==""):
+        prompt="anime, a portrait of a girl, 4k, detailed"
+        neg_prompt=" (((deformed))), blurry, ((((bad anatomy)))), bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra_limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
+    human_words=["girl","woman","boy","man","guy"]
+    for word in human_words:
+        if( (prompt==f"a {word}" or prompt==word) and neg_prompt==""):
+            prompt=f"anime, a portrait of a {word}, 4k, detailed"
+            neg_prompt=" (((deformed))), blurry, ((((bad anatomy)))), bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra_limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
+
+    animal_words=["cat","dog","bird"]
+    for word in animal_words:
+        if( (prompt==f"a {word}" or prompt==word) and neg_prompt==""):
+            prompt=f"anime, a {word}, 4k, detailed"
+            neg_prompt=" (((deformed))), blurry, ((((bad anatomy)))), bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra_limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
+
+    background_words=["mount fuji","mt. fuji","buildidng", "tokyo"]
+    for word in background_words:
+        if( (prompt==f"a {word}" or prompt==word) and neg_prompt==""):
+            prompt=f"anime, shinkai makoto, {word}, 4k, 8k, highly detailed"
+            neg_prompt=" (((deformed))), photo, people, low quality, ui, error, lowres, jpeg artifacts, 2d, 3d, cg, text"
+
+    return prompt,neg_prompt
+    
+def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator):
+    prompt,neg_prompt=auto_prompt_correction(prompt,neg_prompt)
+    
     result = pipe(
       prompt,
       negative_prompt = neg_prompt,
