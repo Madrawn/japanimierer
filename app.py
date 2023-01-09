@@ -121,10 +121,10 @@ with gr.Blocks(css=css) as demo:
                {"Add the following tokens to your prompts for the model to work properly: <b>prefix</b>" if prefix else ""}
               </p>
               <p>
-              sample prompt: anime, ilya kuvshinov , (evangelion), a portrait of a girl with blue short hair and red eyes, ayanami rei, full color illustration, official art, 4k, detailed
+              sample prompt1 : girl
               </p>
               <p>
-              sample negative prompt: low quality, bad face, ((((bad anatomy)))), ((bad hand)), lowres, jpeg artifacts, 2d, 3d, cg, text
+              sample prompt2 : boy
               </p>
               <p>
               <a href="https://alfredplpl.hatenablog.com/entry/2022/12/30/102636">日本語の取扱説明書</a>.
