@@ -42,9 +42,9 @@ def inference(prompt, guidance, steps, width=512, height=512, seed=0, img=None, 
 
   try:
     if img is not None:
-      return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator, disable_auto_prompt_correction), None
+      return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator), None
     else:
-      return txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator, disable_auto_prompt_correction), None
+      return txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator), None
   except Exception as e:
     return None, error_str(e)
 def auto_prompt_correction(prompt_ui,neg_prompt_ui,cool_japan_type_ui):
@@ -141,6 +141,9 @@ with gr.Blocks(css=css) as demo:
           with gr.Group():
               with gr.Row():
                 cool_japan_type=gr.Radio(["Anime", "Manga", "Game"])
+                cool_japan_type.value="Anime"
+                
+              with gr.Row():
                 prompt = gr.Textbox(label="Prompt", show_label=False, max_lines=2,placeholder="[your prompt]").style(container=False)
                 generate = gr.Button(value="Generate").style(rounded=(False, True, True, False))
 
