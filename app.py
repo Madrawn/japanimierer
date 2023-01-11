@@ -33,16 +33,15 @@ def error_str(error, title="Error"):
     return f"""#### {title}
             {error}"""  if error else ""
 
-def inference(prompt, guidance, steps, width=512, height=512, seed=0, img=None, strength=0.5, neg_prompt="", auto_prefix=False):
+def inference(prompt, guidance, steps, width=512, height=512, seed=0, img=None, strength=0.5, neg_prompt="", disable_auto_prompt_correction=False):
 
   generator = torch.Generator('cuda').manual_seed(seed) if seed != 0 else None
-  prompt = f"{prefix} {prompt}" if auto_prefix else prompt
 
   try:
     if img is not None:
-      return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator), None
+      return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator, disable_auto_prompt_correction), None
     else:
-      return txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator), None
+      return txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator, disable_auto_prompt_correction), None
   except Exception as e:
     return None, error_str(e)
 
@@ -77,7 +76,7 @@ def auto_prompt_correction(prompt_ui,neg_prompt_ui):
 
     return prompt,neg_prompt
     
-def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator):
+def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator,disable_auto_prompt_correction):
     if(not disable_auto_prompt_correction):
         prompt,neg_prompt=auto_prompt_correction(prompt,neg_prompt)
     
@@ -92,8 +91,10 @@ def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator):
     
     return result.images[0]
 
-def img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator):
-
+def img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator,disable_auto_prompt_correction):
+    if(not disable_auto_prompt_correction):
+        prompt,neg_prompt=auto_prompt_correction(prompt,neg_prompt)
+        
     ratio = min(height / img.height, width / img.width)
     img = img.resize((int(img.width * ratio), int(img.height * ratio)), Image.LANCZOS)
     result = pipe_i2i(
@@ -168,7 +169,7 @@ with gr.Blocks(css=css) as demo:
                 image = gr.Image(label="Image", height=256, tool="editor", type="pil")
                 strength = gr.Slider(label="Transformation strength", minimum=0, maximum=1, step=0.01, value=0.5)
 
-    inputs = [prompt, guidance, steps, width, height, seed, image, strength, neg_prompt, auto_prefix]
+    inputs = [prompt, guidance, steps, width, height, seed, image, strength, neg_prompt, disable_auto_prompt_correction]
     outputs = [image_out, error_output]
     prompt.submit(inference, inputs=inputs, outputs=outputs)
     generate.click(inference, inputs=inputs, outputs=outputs)
