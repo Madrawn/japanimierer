@@ -122,7 +122,6 @@ with gr.Blocks(css=css) as demo:
               </div>
               <p>
                Demo for <a href="https://huggingface.co/aipicasso/cool-japan-diffusion-2-1-0">Cool Japan Diffusion 2 1 0</a> Stable Diffusion model.<br>
-               {"Add the following tokens to your prompts for the model to work properly: <b>prefix</b>" if prefix else ""}
               </p>
               <p>
               sample prompt1 : girl
