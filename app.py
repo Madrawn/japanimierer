@@ -50,6 +50,13 @@ def inference(prompt, guidance, steps, width=512, height=512, seed=0, img=None, 
 def auto_prompt_correction(prompt_ui,neg_prompt_ui,cool_japan_type_ui):
     # auto prompt correction
     cool_japan_type=str(cool_japan_type_ui)
+    if(cool_japan_type=="Manga"):
+        cool_japan_type="manga, monochrome, white and black manga"
+    elif(cool_japan_type=="Game"):
+        cool_japan_type="game"
+    else:
+        cool_japan_type="anime"
+        
     prompt=str(prompt_ui)
     neg_prompt=str(neg_prompt_ui)
     prompt=prompt.lower()
@@ -141,6 +148,7 @@ with gr.Blocks(css=css) as demo:
           with gr.Group():
               with gr.Row():
                 cool_japan_type=gr.Radio(["Anime", "Manga", "Game"])
+                cool_japan_type.show_label=False
                 cool_japan_type.value="Anime"
                 
               with gr.Row():
