@@ -121,16 +121,16 @@ with gr.Blocks(css=css) as demo:
                 <h1>Cool Japan Diffusion 2.1.1 Beta</h1>
               </div>
               <p>
-               Demo for <a href="https://huggingface.co/aipicasso/cool-japan-diffusion-2-1-0">Cool Japan Diffusion 2 1 0</a> Stable Diffusion model.<br>
+               Demo for <a href="https://huggingface.co/aipicasso/cool-japan-diffusion-2-1-1-beta">Cool Japan Diffusion 2.1.1 Beta</a> Stable Diffusion model.<br>
               </p>
               <p>
-              sample prompt1 : girl
+              sample prompt1 : girl, kimono
               </p>
               <p>
-              sample prompt2 : boy
+              sample prompt2 : boy, school uniform
               </p>
               <p>
-              <a href="https://alfredplpl.hatenablog.com/entry/2022/12/30/102636">日本語の取扱説明書</a>.
+              <a href="https://alfredplpl.hatenablog.com/entry/2023/01/11/182146">日本語の取扱説明書</a>.
               </p>
               Running on {"<b>GPU 🔥</b>" if torch.cuda.is_available() else f"<b>CPU 🥶</b>. For faster inference it is recommended to <b>upgrade to GPU in <a href='https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0/settings'>Settings</a></b>"} after duplicating the space<br><br>
               <a style="display:inline-block" href="https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>
