@@ -55,7 +55,7 @@ def auto_prompt_correction(prompt_ui,neg_prompt_ui):
         neg_prompt=f"(((deformed))), blurry, ((((bad anatomy)))), {neg_prompt}, bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
     splited_prompt=prompt.replace(","," ").replace("_"," ").split(" ")
-        splited_prompt=["a person" if p=="solo" else p for p in splited_prompt]
+    splited_prompt=["a person" if p=="solo" else p for p in splited_prompt]
     splited_prompt=["girl" if p=="1girl" else p for p in splited_prompt]
     splited_prompt=["boy" if p=="1boy" else p for p in splited_prompt]
     human_words=["girl","maid","female","woman","boy","male","man","guy"]
