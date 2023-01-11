@@ -81,11 +81,11 @@ def auto_prompt_correction(prompt_ui,neg_prompt_ui,cool_japan_type_ui):
             prompt=f"{cool_japan_type}, a {word}, 4k, detailed"
             neg_prompt=f"(((deformed))), blurry, ((((bad anatomy)))), {neg_prompt}, bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
-    background_words=["mount fuji","mt. fuji","building", "buildings", "tokyo", "kyoto", "shibuya", "shinjuku"]
+    background_words=["mount fuji","mt. fuji","building", "buildings", "tokyo", "kyoto", "nara", "shibuya", "shinjuku"]
     for word in background_words:
         if( word in splited_prompt):
             prompt=f"{cool_japan_type}, shinkai makoto, {word}, 4k, 8k, highly detailed"
-            neg_prompt=f"(((deformed))), {neg_prompt}, photo, people, low quality, ui, error, lowres, jpeg artifacts, 2d, 3d, cg, text"
+            neg_prompt=f"(((deformed))), {neg_prompt}, girl, boy, photo, people, low quality, ui, error, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
     return prompt,neg_prompt
     
