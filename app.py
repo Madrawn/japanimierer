@@ -132,8 +132,7 @@ with gr.Blocks(css=css) as demo:
               <p>
               <a href="https://alfredplpl.hatenablog.com/entry/2023/01/11/182146">日本語の取扱説明書</a>.
               </p>
-              Running on {"<b>GPU 🔥</b>" if torch.cuda.is_available() else f"<b>CPU 🥶</b>. For faster inference it is recommended to <b>upgrade to GPU in <a href='https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0/settings'>Settings</a></b>"} after duplicating the space<br><br>
-              <a style="display:inline-block" href="https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>
+              Running on {"<b>GPU 🔥</b>" if torch.cuda.is_available() else f"<b>CPU 🥶</b>. For faster inference it is recommended to <b>upgrade to GPU in <a href='https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0/settings'>Settings</a></b>"}
             </div>
         """
     )
@@ -142,7 +141,7 @@ with gr.Blocks(css=css) as demo:
         with gr.Column(scale=55):
           with gr.Group():
               with gr.Row():
-                prompt = gr.Textbox(label="Prompt", show_label=False, max_lines=2,placeholder=f"{prefix} [your prompt]").style(container=False)
+                prompt = gr.Textbox(label="Prompt", show_label=False, max_lines=2,placeholder="[your prompt]").style(container=False)
                 generate = gr.Button(value="Generate").style(rounded=(False, True, True, False))
 
               image_out = gr.Image(height=512)
