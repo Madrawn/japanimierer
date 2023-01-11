@@ -7,7 +7,7 @@ from PIL import Image
 
 model_id = 'aipicasso/cool-japan-diffusion-2-1-0'
 prefix = ''
-     
+
 scheduler = EulerAncestralDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
 feature_extractor = CLIPFeatureExtractor.from_pretrained(model_id)
 
@@ -56,28 +56,30 @@ def auto_prompt_correction(prompt_ui,neg_prompt_ui):
         prompt="anime, a portrait of a girl, 4k, detailed"
         neg_prompt=" (((deformed))), blurry, ((((bad anatomy)))), bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra_limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
+    splited_prompt=prompt.replace(","," ").split(" ")
     human_words=["girl","maid","female","woman","boy","male","man","guy"]
     for word in human_words:
-        if( (prompt==f"a {word}" or prompt==word) and neg_prompt==""):
-            prompt=f"anime, a portrait of a {word}, 4k, detailed"
+        if( word in splited_prompt):
+            prompt=f"anime, {prompt}, 4k, detailed"
             neg_prompt=" (((deformed))), blurry, ((((bad anatomy)))), bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra_limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
     animal_words=["cat","dog","bird"]
     for word in animal_words:
-        if( (prompt==f"a {word}" or prompt==word) and neg_prompt==""):
+        if( word in splited_prompt):
             prompt=f"anime, a {word}, 4k, detailed"
             neg_prompt=" (((deformed))), blurry, ((((bad anatomy)))), bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra_limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, ((mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
     background_words=["mount fuji","mt. fuji","building", "buildings", "tokyo"]
     for word in background_words:
-        if( (prompt==f"a {word}" or prompt==word) and neg_prompt==""):
+        if( word in splited_prompt):
             prompt=f"anime, shinkai makoto, {word}, 4k, 8k, highly detailed"
             neg_prompt=" (((deformed))), photo, people, low quality, ui, error, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
     return prompt,neg_prompt
     
 def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator):
-    prompt,neg_prompt=auto_prompt_correction(prompt,neg_prompt)
+    if(not disable_auto_prompt_correction):
+        prompt,neg_prompt=auto_prompt_correction(prompt,neg_prompt)
     
     result = pipe(
       prompt,
@@ -149,7 +151,7 @@ with gr.Blocks(css=css) as demo:
           with gr.Tab("Options"):
             with gr.Group():
               neg_prompt = gr.Textbox(label="Negative prompt", placeholder="What to exclude from the image")
-              auto_prefix = gr.Checkbox(label="Prefix styling tokens automatically ()", value=prefix, visible=prefix)
+              disable_auto_prompt_correction = gr.Checkbox(label="Disable auto prompt corretion.")
 
               with gr.Row():
                 guidance = gr.Slider(label="Guidance scale", value=7.5, maximum=15)
@@ -165,8 +167,6 @@ with gr.Blocks(css=css) as demo:
               with gr.Group():
                 image = gr.Image(label="Image", height=256, tool="editor", type="pil")
                 strength = gr.Slider(label="Transformation strength", minimum=0, maximum=1, step=0.01, value=0.5)
-
-    auto_prefix.change(lambda x: gr.update(placeholder=f"{prefix} [your prompt]" if x else "[Your prompt]"), inputs=auto_prefix, outputs=prompt, queue=False)
 
     inputs = [prompt, guidance, steps, width, height, seed, image, strength, neg_prompt, auto_prefix]
     outputs = [image_out, error_output]
