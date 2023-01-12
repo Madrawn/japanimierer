@@ -160,11 +160,6 @@ with gr.Blocks(css=css) as demo:
                 cool_japan_type=gr.Radio(["Anime", "Manga", "Game"])
                 cool_japan_type.show_label=False
                 cool_japan_type.value="Anime"
-                  
-              with gr.Row():
-                image_size=gr.Radio(["Portrait","Landscape","Square"])
-                cool_japan_type.show_label=False
-                cool_japan_type.value="Portrait"
                 
               with gr.Row():
                 prompt = gr.Textbox(label="Prompt", show_label=False, max_lines=2,placeholder="[your prompt]").style(container=False)
@@ -178,7 +173,11 @@ with gr.Blocks(css=css) as demo:
             with gr.Group():
               neg_prompt = gr.Textbox(label="Negative prompt", placeholder="What to exclude from the image")
               disable_auto_prompt_correction = gr.Checkbox(label="Disable auto prompt corretion.")
-
+              with gr.Row():
+                image_size=gr.Radio(["Portrait","Landscape","Square"])
+                image_size.show_label=False
+                image_size.value="Portrait"
+                
               with gr.Row():
                 guidance = gr.Slider(label="Guidance scale", value=7.5, maximum=15)
                 steps = gr.Slider(label="Steps", value=20, minimum=2, maximum=75, step=1)
