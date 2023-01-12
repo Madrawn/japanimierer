@@ -78,8 +78,9 @@ def auto_prompt_correction(prompt_ui,neg_prompt_ui,cool_japan_type_ui):
     splited_prompt=prompt.replace(","," ").replace("_"," ").split(" ")
     splited_prompt=["a person" if p=="solo" else p for p in splited_prompt]
     splited_prompt=["girl" if p=="1girl" else p for p in splited_prompt]
-    splited_prompt=["boy" if p=="1boy" else p for p in splited_prompt]
-    human_words=["girl","maid","female","woman","boy","male","man","guy"]
+    splited_prompt=["a couple of girls" if p=="2girls" else p for p in splited_prompt]
+    splited_prompt=["a couple of boys" if p=="2boys" else p for p in splited_prompt]
+    human_words=["girl","maid","maids","female","woman","girls","women","boy","boys","male","man","men","guy","guys"]
     for word in human_words:
         if( word in splited_prompt):
             prompt=f"{cool_japan_type}, {prompt}, 4k, detailed"
