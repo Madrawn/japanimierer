@@ -33,13 +33,23 @@ def error_str(error, title="Error"):
             {error}"""  if error else ""
 
 
-def inference(prompt, guidance, steps, width=512, height=512, seed=0, img=None, strength=0.5, neg_prompt="", cool_japan_type="Anime", disable_auto_prompt_correction=False):
+def inference(prompt, guidance, steps, image_size="Square", seed=0, img=None, strength=0.5, neg_prompt="", cool_japan_type="Anime", disable_auto_prompt_correction=False):
 
   generator = torch.Generator('cuda').manual_seed(seed) if seed != 0 else None
 
   if(not disable_auto_prompt_correction):
     prompt,neg_prompt=auto_prompt_correction(prompt,neg_prompt,cool_japan_type)
 
+  if(image_size=="Portrait"):
+      height=768
+      width=576
+  elif(image_size=="Landscape"):
+      height=576
+      width=768  
+  else:
+      height=512
+      width=512
+      
   try:
     if img is not None:
       return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator), None
@@ -150,12 +160,17 @@ with gr.Blocks(css=css) as demo:
                 cool_japan_type=gr.Radio(["Anime", "Manga", "Game"])
                 cool_japan_type.show_label=False
                 cool_japan_type.value="Anime"
+                  
+            with gr.Row():
+                image_size=gr.Radio(["Portrait","Landscape","Square"])
+                cool_japan_type.show_label=False
+                cool_japan_type.value="Portrait"
                 
               with gr.Row():
                 prompt = gr.Textbox(label="Prompt", show_label=False, max_lines=2,placeholder="[your prompt]").style(container=False)
                 generate = gr.Button(value="Generate").style(rounded=(False, True, True, False))
 
-              image_out = gr.Image(height=512)
+              image_out = gr.Image(height=768,width=576)
           error_output = gr.Markdown()
 
         with gr.Column(scale=45):
@@ -168,10 +183,6 @@ with gr.Blocks(css=css) as demo:
                 guidance = gr.Slider(label="Guidance scale", value=7.5, maximum=15)
                 steps = gr.Slider(label="Steps", value=20, minimum=2, maximum=75, step=1)
 
-              with gr.Row():
-                width = gr.Slider(label="Width", value=512, minimum=64, maximum=1024, step=8)
-                height = gr.Slider(label="Height", value=512, minimum=64, maximum=1024, step=8)
-
               seed = gr.Slider(0, 2147483647, label='Seed (0 = random)', value=0, step=1)
 
           with gr.Tab("Image to image"):
@@ -179,7 +190,7 @@ with gr.Blocks(css=css) as demo:
                 image = gr.Image(label="Image", height=256, tool="editor", type="pil")
                 strength = gr.Slider(label="Transformation strength", minimum=0, maximum=1, step=0.01, value=0.5)
                   
-    inputs = [prompt, guidance, steps, width, height, seed, image, strength, neg_prompt, cool_japan_type, disable_auto_prompt_correction]
+    inputs = [prompt, guidance, steps, image_size, seed, image, strength, neg_prompt, cool_japan_type, disable_auto_prompt_correction]
 
     outputs = [image_out, error_output]
     prompt.submit(inference, inputs=inputs, outputs=outputs)
