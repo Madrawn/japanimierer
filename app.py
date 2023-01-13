@@ -13,6 +13,7 @@ feature_extractor = CLIPFeatureExtractor.from_pretrained(model_id)
 pipe = StableDiffusionPipeline.from_pretrained(
   model_id,
   torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+  requires_safety_checker=False,
   scheduler=scheduler)
 
 pipe_i2i = StableDiffusionImg2ImgPipeline.from_pretrained(
@@ -33,7 +34,7 @@ def error_str(error, title="Error"):
             {error}"""  if error else ""
 
 
-def inference(prompt, guidance, steps, image_size="Square", seed=0, img=None, strength=0.5, neg_prompt="", cool_japan_type="Anime", disable_auto_prompt_correction=False):
+def inference(prompt, guidance, steps, image_size="Square", seed=0, img=None, strength=0.5, neg_prompt="", cool_japan_type="Anime", disable_auto_prompt_correction=False,width_custom=512,height_custom=512):
 
   generator = torch.Generator('cuda').manual_seed(seed) if seed != 0 else None
 
@@ -46,10 +47,12 @@ def inference(prompt, guidance, steps, image_size="Square", seed=0, img=None, st
   elif(image_size=="Landscape"):
       height=576
       width=768  
-  else:
+  elif(image_size=="Square"):
       height=512
       width=512
-      
+  else:
+      height=768
+      width=768  
   try:
     if img is not None:
       return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator), None, prog_holder.current_img
@@ -109,7 +112,7 @@ def current_img_get():
    
 def imgCollector(step: int, timestep: int, latents: torch.FloatTensor):
     image = pipe.decode_latents(latents)
-    prog_holder.images.append(image[0])
+    #prog_holder.images.append(image[0])
     prog_holder.current_img = image[0]
    
 
@@ -123,6 +126,7 @@ def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator):
       height = height,
       generator = generator,
       callback=imgCollector)
+    prog_holder.images.append(result.images[0])
     return prog_holder.images
 
 def img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator):
@@ -139,11 +143,12 @@ def img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height
         #height = height,
         generator = generator,
         callback=imgCollector)        
+    prog_holder.images.append(result.images[0])
     return prog_holder.images
 
 css = """.main-div div{display:inline-flex;align-items:center;gap:.8rem;font-size:1.75rem}.main-div div h1{font-weight:900;margin-bottom:7px}.main-div p{margin-bottom:10px;font-size:94%}a{text-decoration:underline}.tabs{margin-top:0;margin-bottom:0}#gallery{min-height:20rem}
 """
-with gr.Blocks(css=css) as demo:
+with gr.Blocks(css=css, live=True) as demo:
     gr.HTML(
         f"""
             <div class="main-div">
@@ -187,9 +192,12 @@ with gr.Blocks(css=css) as demo:
               neg_prompt = gr.Textbox(label="Negative prompt", placeholder="What to exclude from the image")
               disable_auto_prompt_correction = gr.Checkbox(label="Disable auto prompt corretion.")
               with gr.Row():
-                image_size=gr.Radio(["Portrait","Landscape","Square"])
+                image_size=gr.Radio(["Portrait","Landscape","Square","Bigger Square"])
                 image_size.show_label=False
                 image_size.value="Portrait"
+              with gr.Row(visible = False) as custom_size:
+                width_custom = gr.Slider(label="width", value=512,  minimum=64, maximum=1024, step=1)
+                height_custom = gr.Slider(label="height", value=512, minimum=64, maximum=1024, step=1)
                 
               with gr.Row():
                 guidance = gr.Slider(label="Guidance scale", value=7.5, maximum=15)
@@ -206,7 +214,7 @@ with gr.Blocks(css=css) as demo:
               image_progress = gr.Image(value=current_img_get,every=0.5)
             
                   
-    inputs = [prompt, guidance, steps, image_size, seed, image, strength, neg_prompt, cool_japan_type, disable_auto_prompt_correction]
+    inputs = [prompt, guidance, steps, image_size, seed, image, strength, neg_prompt, cool_japan_type, disable_auto_prompt_correction,width_custom,height_custom]
 
     outputs = [image_out, error_output,image_progress]
     prompt.submit(inference, inputs=inputs, outputs=outputs, show_progress=False)
