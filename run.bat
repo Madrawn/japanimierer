@@ -1,3 +1,1 @@
-.\env\Scripts\activate
-python app.py
-pause
+.\env\Scripts\python app.py
