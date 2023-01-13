@@ -193,7 +193,7 @@ with gr.Blocks(css=css) as demo:
                 
               with gr.Row():
                 guidance = gr.Slider(label="Guidance scale", value=7.5, maximum=15)
-                steps = gr.Slider(label="Steps", value=20, minimum=2, maximum=75, step=1)
+                steps = gr.Slider(label="Steps", value=20, minimum=2, maximum=300, step=1)
 
               seed = gr.Slider(0, 2147483647, label='Seed (0 = random)', value=0, step=1)
 
