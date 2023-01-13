@@ -1,4 +1,20 @@
 # Thank AK. https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0/blob/main/app.py
+
+import sys
+import tempfile
+import os
+if not os.path.exists('pic'):
+    os.mkdir('pic')
+module = sys.modules['tempfile']
+fn = lambda : '.\\pic'
+module._get_default_tempdir = fn
+sys.modules['tempfile'] = module 
+
+
+
+
+
+
 from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, EulerAncestralDiscreteScheduler
 from transformers import CLIPFeatureExtractor
 import gradio as gr
