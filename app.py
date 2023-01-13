@@ -52,9 +52,9 @@ def inference(prompt, guidance, steps, image_size="Square", seed=0, img=None, st
       
   try:
     if img is not None:
-      return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator), None
+      return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator), None, prog_holder.current_img
     else:
-      return txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator), None
+      return txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator), None, prog_holder.current_img
   except Exception as e:
     return None, error_str(e)
 def auto_prompt_correction(prompt_ui,neg_prompt_ui,cool_japan_type_ui):
@@ -99,7 +99,20 @@ def auto_prompt_correction(prompt_ui,neg_prompt_ui,cool_japan_type_ui):
             neg_prompt=f"(((deformed))), {neg_prompt}, girl, boy, photo, people, low quality, ui, error, lowres, jpeg artifacts, 2d, 3d, cg, text"
 
     return prompt,neg_prompt
-    
+class prog_holder:
+  current_img = None
+  images = []    
+  
+def current_img_get():
+  return prog_holder.current_img
+
+   
+def imgCollector(step: int, timestep: int, latents: torch.FloatTensor):
+    image = pipe.decode_latents(latents)
+    prog_holder.images.append(image[0])
+    prog_holder.current_img = image[0]
+   
+
 def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator):
     result = pipe(
       prompt,
@@ -108,9 +121,9 @@ def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator):
       guidance_scale = guidance,
       width = width,
       height = height,
-      generator = generator)
-    
-    return result.images[0]
+      generator = generator,
+      callback=imgCollector)
+    return prog_holder.images
 
 def img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator):
     ratio = min(height / img.height, width / img.width)
@@ -124,9 +137,9 @@ def img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height
         guidance_scale = guidance,
         #width = width,
         #height = height,
-        generator = generator)
-        
-    return result.images[0]
+        generator = generator,
+        callback=imgCollector)        
+    return prog_holder.images
 
 css = """.main-div div{display:inline-flex;align-items:center;gap:.8rem;font-size:1.75rem}.main-div div h1{font-weight:900;margin-bottom:7px}.main-div p{margin-bottom:10px;font-size:94%}a{text-decoration:underline}.tabs{margin-top:0;margin-bottom:0}#gallery{min-height:20rem}
 """
@@ -147,7 +160,6 @@ with gr.Blocks(css=css) as demo:
               sample prompt2 : boy, school uniform
               </p>
               <p>
-              <a href="https://alfredplpl.hatenablog.com/entry/2023/01/11/182146">日本語の取扱説明書</a>.
               </p>
               Running on {"<b>GPU 🔥</b>" if torch.cuda.is_available() else f"<b>CPU 🥶</b>. For faster inference it is recommended to <b>upgrade to GPU in <a href='https://huggingface.co/spaces/akhaliq/cool-japan-diffusion-2-1-0/settings'>Settings</a></b>"}
             </div>
@@ -166,7 +178,7 @@ with gr.Blocks(css=css) as demo:
                 prompt = gr.Textbox(label="Prompt", show_label=False, max_lines=2,placeholder="[your prompt]").style(container=False)
                 generate = gr.Button(value="Generate").style(rounded=(False, True, True, False))
 
-              image_out = gr.Image(height=768,width=576)
+              image_out = gr.Gallery().style(grid=[5], height="auto")
           error_output = gr.Markdown()
 
         with gr.Column(scale=45):
@@ -187,21 +199,17 @@ with gr.Blocks(css=css) as demo:
 
           with gr.Tab("Image to image"):
               with gr.Group():
-                image = gr.Image(label="Image", height=256, tool="editor", type="pil")
+                image = gr.Image(label="Image", height=512, tool="editor", type="pil")
                 strength = gr.Slider(label="Transformation strength", minimum=0, maximum=1, step=0.01, value=0.5)
+          with gr.Group():
+            with gr.Row():  
+              image_progress = gr.Image(value=current_img_get,every=0.5)
+            
                   
     inputs = [prompt, guidance, steps, image_size, seed, image, strength, neg_prompt, cool_japan_type, disable_auto_prompt_correction]
 
-    outputs = [image_out, error_output]
-    prompt.submit(inference, inputs=inputs, outputs=outputs)
-    generate.click(inference, inputs=inputs, outputs=outputs)
+    outputs = [image_out, error_output,image_progress]
+    prompt.submit(inference, inputs=inputs, outputs=outputs, show_progress=False)
+    generate.click(inference, inputs=inputs, outputs=outputs, show_progress=False)
 
-    gr.HTML("""
-    <div style="border-top: 1px solid #303030;">
-      <br>
-      <p>This space was created using <a href="https://huggingface.co/spaces/anzorq/sd-space-creator">SD Space Creator</a>.</p>
-    </div>
-    """)
-
-demo.queue(concurrency_count=1)
-demo.launch()
+demo.queue(status_update_rate=1).launch(share=False)
