@@ -178,7 +178,7 @@ with gr.Blocks(css=css) as demo:
                 prompt = gr.Textbox(label="Prompt", show_label=False, max_lines=2,placeholder="[your prompt]").style(container=False)
                 generate = gr.Button(value="Generate").style(rounded=(False, True, True, False))
 
-              image_out = gr.Gallery().style(grid=[5], height="auto")
+              image_out = gr.Gallery().style(grid=[5], height=900)
           error_output = gr.Markdown()
 
         with gr.Column(scale=45):
