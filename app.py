@@ -256,7 +256,7 @@ with gr.Blocks(css=css) as demo:
                     0, 2147483647, label='Seed (0 = random)', value=0, step=1)
         with gr.Tab("Image to image"):
             with gr.Group():
-                image = gr.ImagePaint(label="Image", type="pil")
+                image = gr.Image(tool="editor",label="Image", type="pil")
                 strength = gr.Slider(
                     label="Transformation strength", minimum=0, maximum=1, step=0.01, value=0.5)
 
