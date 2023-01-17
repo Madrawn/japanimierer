@@ -7,6 +7,12 @@ from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, E
 from diffusers import StableDiffusionInpaintPipeline
 import sys
 import tempfile
+import inspect
+import diffusers
+import sys
+from diffusers.schedulers.scheduling_utils import SchedulerMixin
+
+
 import os
 import time
 if not os.path.exists('pic'):
@@ -18,31 +24,99 @@ def fn(): return '.\\pic'
 module._get_default_tempdir = fn
 sys.modules['tempfile'] = module
 
+schedulers = [(name, obj) for name, obj in inspect.getmembers(
+    sys.modules['diffusers']) if inspect.isclass(obj) and issubclass(obj, SchedulerMixin) and name != "KarrasVeScheduler"]
+result_paired = list(set([(name, parameter.default) for (_, obj) in schedulers for (name, parameter) in inspect.signature(
+    inspect.getattr_static(obj, "__init__")).parameters.items() if ((name != "self") & (name != "kwargs"))]))
 
-model_id = 'aipicasso/cool-japan-diffusion-2-1-1-beta'
+result = []
+seen_names = set()
+for name, size in result_paired:
+    if name not in seen_names:
+        result.append((name, size))
+        seen_names.add(name)
+print(result)
+to_render = dict()
+for name, default in result:
+    print(name)
+    print(default)
+    if (name == "beta_schedule"):
+        to_render[name] = (gr.Dropdown(choices=[
+            "linear", "scaled_linear", "squaredcos_cap_v2"], value=default, label=name))
+    elif (name == "solver_order"):
+        to_render[name] = (
+            gr.Slider(1, 3, value=default, label=name, visible=False))
+    elif (name == "solver_type"):
+        to_render[name] = (gr.Dropdown(
+            choices=["midpoint", "heun"], value=default, label=name, visible=False))
+    elif (name == "algorithm_type"):
+        to_render[name] = (gr.Dropdown(
+            choices=["dpmsolver++", "dpmsolver"], value=default, label=name, visible=False))
+    elif (name == "prediction_type"):
+        to_render[name] = (gr.Dropdown(
+            choices=["epsilon", "sample", "v_prediction"], value=default, label=name, visible=False))
+    elif (type(default) == type(0.5)):
+        to_render[name] = (
+            gr.Number(value=default, label=name, precision=None, visible=False))
+    elif (type(default) == type(1)):
+        to_render[name] = (
+            gr.Number(value=default, label=name, precision=0, visible=False))
+    elif (type(default) == type(True)):
+        to_render[name] = (gr.Checkbox(
+            value=default, label=name, visible=False))
+    elif (type(default) == type("str")):
+        to_render[name] = (gr.Text(value=default, label=name, visible=False))
+    else:
+        to_render[name] = (gr.State(value=None, label=name, visible=False))
 
-scheduler = EulerAncestralDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
-feature_extractor = CLIPImageProcessor.from_pretrained(model_id)
 
-pipe = StableDiffusionPipeline.from_pretrained(
-  model_id,
-  torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-  requires_safety_checker=False,
-  scheduler=scheduler)
+class custom_bag:
+    current_custom_scheduler = None
+    current_filled_settings = None
+    pipe_i2i = None
+    pipe = None
 
-pipe_i2i = StableDiffusionImg2ImgPipeline.from_pretrained(
-  model_id,
-  torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-  scheduler=scheduler,
-  requires_safety_checker=False,
-  safety_checker=None,
-  feature_extractor=feature_extractor
-)
 
-if torch.cuda.is_available():
-  pipe = pipe.to("cuda")
-  pipe_i2i = pipe_i2i.to("cuda")
+def fill_defaults(data):
+    print(data)
+    return_arr = []
+    custom_bag.current_filled_settings = dict()
+    scheduler = next((obj for name, obj in schedulers if name == data), False)
+    for number in to_render:
+        if (scheduler):
+            custom_bag.current_custom_scheduler = scheduler
+            parameter = next((obj for name, obj in inspect.signature(
+                inspect.getattr_static(scheduler, "__init__")).parameters.items() if name == number), False)
+            if (parameter):
+                print(parameter.default)
+                return_arr.append(
+                    gr.update(visible=True, value=parameter.default))
+                custom_bag.current_filled_settings[number] = parameter.default
+                continue
+        return_arr.append(gr.update(visible=False))
 
+    return return_arr
+
+
+def set_values(data):
+    print(data)
+    return_arr = []
+    custom_bag.current_filled_settings = dict()
+    scheduler = next((obj for name, obj in schedulers if name == data), False)
+    for number in to_render:
+        if (scheduler):
+            custom_bag.current_custom_scheduler = scheduler
+            parameter = next((obj for name, obj in inspect.signature(
+                inspect.getattr_static(scheduler, "__init__")).parameters.items() if name == number.label), False)
+            if (parameter):
+                print(parameter.default)
+                return_arr.append(
+                    gr.update(visible=True))
+                custom_bag.current_filled_settings[number.label] = number.value
+                continue
+        return_arr.append(gr.update(visible=False))
+
+    return return_arr
 
 
 def error_str(error, title="Error"):
@@ -50,32 +124,79 @@ def error_str(error, title="Error"):
             {error}""" if error else ""
 
 
-def inference(prompt, guidance, steps, image_size="Square", seed=0, img=None, strength=0.5, neg_prompt="", cool_japan_type="Anime", disable_auto_prompt_correction=False, width_custom=512, height_custom=512, progress=gr.Progress()):
+model_id = 'aipicasso/cool-japan-diffusion-2-1-1-beta'
+scheduler = EulerAncestralDiscreteScheduler.from_pretrained(
+    model_id, subfolder="scheduler")
+print(scheduler)
+feature_extractor = CLIPImageProcessor.from_pretrained(model_id)
+
+custom_bag.pipe_i2i = StableDiffusionImg2ImgPipeline.from_pretrained(
+    model_id,
+    torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+    scheduler=scheduler,
+    requires_safety_checker=False,
+    safety_checker=None,
+    feature_extractor=feature_extractor
+)
+custom_bag.pipe = StableDiffusionPipeline(**custom_bag.pipe_i2i.components)
+
+if torch.cuda.is_available():
+    custom_bag.pipe = custom_bag.pipe.to("cuda")
+    custom_bag.pipe_i2i = custom_bag.pipe_i2i.to("cuda")
+
+
+def inference(data, progress=gr.Progress()):
+
+    if (data[advanced_check]):
+        print(custom_bag.current_filled_settings)
+        # set_values(scheduler_dropdown)
+        kwargs = {inputs.label: data[inputs] for inputs in [*data] if type(inputs.label) is type("str")}
+        print(kwargs)
+        scheduler = next(
+            (obj for name, obj in schedulers if name == kwargs['scheduler']), False)
+        
+                # Get the list of valid parameters
+        valid_params = inspect.signature(scheduler).parameters.keys()
+
+        # Create a copy of the parameters dictionary
+        params_copy = kwargs.copy()
+
+        # Iterate over the parameters and remove any that are not in the list of valid parameters
+        for key, value in params_copy.items():
+            if key not in valid_params:
+                kwargs.pop(key)
+
+        # Print the remaining parameters
+        print(kwargs)
+        custom_bag.pipe.scheduler = scheduler(
+            **kwargs)
+        custom_bag.pipe_i2i.scheduler = scheduler(
+            **kwargs)
 
     generator = torch.Generator('cuda').manual_seed(
-        seed) if seed != 0 else None
+        data[seed]) if data[seed] != 0 else None
 
-    if (not disable_auto_prompt_correction):
-        prompt, neg_prompt = auto_prompt_correction(
-            prompt, neg_prompt, cool_japan_type)
+    if (not data[disable_auto_prompt_correction]):
+        data[prompt], data[neg_prompt] = auto_prompt_correction(
+            data[prompt], data[neg_prompt], data[cool_japan_type])
 
-    if (image_size == "Portrait"):
+    if (data[image_size] == "Portrait"):
         height = 768
         width = 576
-    elif (image_size == "Landscape"):
+    elif (data[image_size] == "Landscape"):
         height = 576
         width = 768
-    elif (image_size == "Square"):
+    elif (data[image_size] == "Square"):
         height = 512
         width = 512
     else:
         height = 768
         width = 768
     try:
-        if img is not None:
-            return img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator, progress), None
+        if data[image] is not None:
+            return img_to_img(data[prompt], data[neg_prompt], data[image], data[strength], data[guidance], data[steps], width, height, generator, progress), None
         else:
-            return txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator, progress), None
+            return txt_to_img(data[prompt], data[neg_prompt], data[guidance], data[steps], width, height, generator, progress), None
     except Exception as e:
         return None, error_str(e)
 
@@ -149,15 +270,16 @@ def numpy_to_png(arr):
 
 def imgCollector(prog, steps):
     def collect(step: int, timestep: int, latents: torch.FloatTensor):
-        image = pipe.decode_latents(latents)
+        image = custom_bag.pipe.decode_latents(latents)
         # prog_holder.images.append(image[0])
-        prog((step, steps))
+        prog((step % steps if steps != 0 else 0, steps))
         prog_holder.current_img = image[0]
     return collect
 
 
 def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator, progress):
-    result = pipe(
+    print(custom_bag.pipe.scheduler)
+    result = custom_bag.pipe(
         prompt,
         negative_prompt=neg_prompt,
         num_inference_steps=int(steps),
@@ -172,10 +294,11 @@ def txt_to_img(prompt, neg_prompt, guidance, steps, width, height, generator, pr
 
 
 def img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height, generator, progress):
+    print(custom_bag.pipe_i2i.scheduler)
     ratio = min(height / img.height, width / img.width)
     img = img.resize(
         (int(img.width * ratio), int(img.height * ratio)), Image.LANCZOS)
-    result = pipe_i2i(
+    result = custom_bag.pipe_i2i(
         prompt,
         negative_prompt=neg_prompt,
         image=img,
@@ -232,7 +355,7 @@ with gr.Blocks(css=css) as demo:
             image_out = gr.Image()
         image_progress = gr.Image(
             value=current_img_get, every=0.5, interactive=False)
-        
+
     error_output = gr.Markdown()
     with gr.Row():
         with gr.Tab("Options"):
@@ -256,13 +379,31 @@ with gr.Blocks(css=css) as demo:
                     0, 2147483647, label='Seed (0 = random)', value=0, step=1)
         with gr.Tab("Image to image"):
             with gr.Group():
-                image = gr.Image(tool="editor",label="Image", type="pil")
+                image = gr.Image(tool="editor", label="Image", type="pil")
                 strength = gr.Slider(
                     label="Transformation strength", minimum=0, maximum=1, step=0.01, value=0.5)
+        with gr.Tab('Advanced Options'):
+            with gr.Group():
+                advanced_check = gr.Checkbox(
+                    value=False, label="Enable custom scheduler")
+                scheduler_dropdown = gr.Dropdown(
+                    [name for name, _ in schedulers], value=schedulers[0][0], visible=False, interactive=True, label="scheduler")
+                load_default_button = gr.Button("Hide Invalid", visible=False)
+                with gr.Group():
+                    [number.render() for number in to_render.values()]
 
+    load_default_button.click(fill_defaults, scheduler_dropdown, [
+                              things for things in to_render.values()])
 
-    inputs = [prompt, guidance, steps, image_size, seed, image, strength, neg_prompt,
-              cool_japan_type, disable_auto_prompt_correction]
+    all_inputs = [scheduler_dropdown] + \
+        [things for things in to_render.values()]
+    advanced_check.change(lambda val: [gr.update(
+        visible=val, interactive=val) for _ in all_inputs]+[gr.update(
+            visible=val)], advanced_check, all_inputs + [load_default_button])
+
+    inputs = {prompt, guidance, steps, image_size, seed, image, strength, neg_prompt,
+              cool_japan_type, disable_auto_prompt_correction, advanced_check, scheduler_dropdown}
+    inputs = {*inputs, *to_render.values()}
     outputs = [image_out, error_output]
 
     prompt.submit(inference, inputs=inputs,
@@ -270,4 +411,4 @@ with gr.Blocks(css=css) as demo:
     generate.click(inference, inputs=inputs,
                    outputs=outputs, show_progress=True)
 
-demo.queue(status_update_rate=1).launch(share=False)
+    demo.queue(status_update_rate=1).launch(share=False)
