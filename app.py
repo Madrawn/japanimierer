@@ -45,7 +45,7 @@ for name, default in result:
             "linear", "scaled_linear", "squaredcos_cap_v2"], value=default, label=name))
     elif (name == "solver_order"):
         to_render[name] = (
-            gr.Slider(1, 3, value=default, label=name, visible=False))
+            gr.Slider(1, 3,step=1, value=default, label=name, visible=False))
     elif (name == "solver_type"):
         to_render[name] = (gr.Dropdown(
             choices=["midpoint", "heun"], value=default, label=name, visible=False))
@@ -55,6 +55,9 @@ for name, default in result:
     elif (name == "prediction_type"):
         to_render[name] = (gr.Dropdown(
             choices=["epsilon", "sample", "v_prediction"], value=default, label=name, visible=False))
+    elif (name == "variance_type"):
+        to_render[name] = (gr.Dropdown(
+            choices=["fixed_small","fixed_small_log", "fixed_large", "fixed_large_log", "learned", "learned_range"], value=default, label=name, visible=False))
     elif (type(default) == type(0.5)):
         to_render[name] = (
             gr.Number(value=default, label=name, precision=None, visible=False))
@@ -125,15 +128,15 @@ def error_str(error, title="Error"):
 
 
 model_id = 'aipicasso/cool-japan-diffusion-2-1-1-beta'
-scheduler = EulerAncestralDiscreteScheduler.from_pretrained(
+scheduler_orig = EulerAncestralDiscreteScheduler.from_pretrained(
     model_id, subfolder="scheduler")
-print(scheduler)
+print(scheduler_orig)
 feature_extractor = CLIPImageProcessor.from_pretrained(model_id)
 
 custom_bag.pipe_i2i = StableDiffusionImg2ImgPipeline.from_pretrained(
     model_id,
     torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-    scheduler=scheduler,
+    scheduler=scheduler_orig,
     requires_safety_checker=False,
     safety_checker=None,
     feature_extractor=feature_extractor
@@ -147,16 +150,17 @@ if torch.cuda.is_available():
 
 def inference(data, progress=gr.Progress()):
 
+    scheduler = scheduler_orig
     if (data[advanced_check]):
         print(custom_bag.current_filled_settings)
         # set_values(scheduler_dropdown)
         kwargs = {inputs.label: data[inputs] for inputs in [*data] if type(inputs.label) is type("str")}
         print(kwargs)
-        scheduler = next(
+        scheduler_new = next(
             (obj for name, obj in schedulers if name == kwargs['scheduler']), False)
         
                 # Get the list of valid parameters
-        valid_params = inspect.signature(scheduler).parameters.keys()
+        valid_params = inspect.signature(scheduler_new).parameters.keys()
 
         # Create a copy of the parameters dictionary
         params_copy = kwargs.copy()
@@ -165,13 +169,12 @@ def inference(data, progress=gr.Progress()):
         for key, value in params_copy.items():
             if key not in valid_params:
                 kwargs.pop(key)
+        scheduler = scheduler_new(**kwargs)
 
         # Print the remaining parameters
         print(kwargs)
-        custom_bag.pipe.scheduler = scheduler(
-            **kwargs)
-        custom_bag.pipe_i2i.scheduler = scheduler(
-            **kwargs)
+    custom_bag.pipe.scheduler = scheduler
+    custom_bag.pipe_i2i.scheduler = scheduler
 
     generator = torch.Generator('cuda').manual_seed(
         data[seed]) if data[seed] != 0 else None
@@ -208,6 +211,8 @@ def auto_prompt_correction(prompt_ui, neg_prompt_ui, cool_japan_type_ui):
         cool_japan_type = "manga, monochrome, white and black manga"
     elif (cool_japan_type == "Game"):
         cool_japan_type = "game"
+    elif (cool_japan_type == "negative only"):
+        return f"{prompt_ui}, 4k, detailed", f"(((deformed))), blurry, ((((bad anatomy)))), {neg_prompt_ui}, bad pupil, disfigured, poorly drawn face, mutation, mutated, (extra limb), (ugly), (poorly drawn hands), bad hands, fused fingers, messy drawing, broken legs censor, low quality, (mutated hands and fingers:1.5), (long body :1.3), (mutation, poorly drawn :1.2), ((bad eyes)), ui, error, missing fingers, fused fingers, one hand with more than 5 fingers, one hand with less than 5 fingers, one hand with more than 5 digit, one hand with less than 5 digit, extra digit, fewer digits, fused digit, missing digit, bad digit, liquid digit, long body, uncoordinated body, unnatural body, lowres, jpeg artifacts, 2d, 3d, cg, text"
     else:
         cool_japan_type = "anime"
 
@@ -297,12 +302,12 @@ def img_to_img(prompt, neg_prompt, img, strength, guidance, steps, width, height
     print(custom_bag.pipe_i2i.scheduler)
     ratio = min(height / img.height, width / img.width)
     img = img.resize(
-        (int(img.width * ratio), int(img.height * ratio)), Image.LANCZOS)
+        (int(img.width * ratio), int(img.height * ratio)), Image.Resampling.LANCZOS)
     result = custom_bag.pipe_i2i(
         prompt,
         negative_prompt=neg_prompt,
         image=img,
-        num_inference_steps=int(steps/strength),
+        num_inference_steps=int(steps*(steps/int(steps * strength))),
         strength=strength,
         guidance_scale=guidance,
         # width = width,
@@ -342,7 +347,7 @@ with gr.Blocks(css=css) as demo:
     with gr.Row():
         with gr.Group():
             with gr.Row():
-                cool_japan_type = gr.Radio(["Anime", "Manga", "Game"])
+                cool_japan_type = gr.Radio(["Anime", "Manga", "Game","negative only"])
                 cool_japan_type.show_label = False
                 cool_japan_type.value = "Anime"
 
